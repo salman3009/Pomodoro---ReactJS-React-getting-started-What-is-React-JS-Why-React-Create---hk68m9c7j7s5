@@ -24,6 +24,7 @@ const App = () => {
 
     if(getType == "work"  && getFlag && getWorkInSeconds<1){
       setType('break');
+      alert("work time is completed");
       clearTimeout(workResult);
     }
 
@@ -35,6 +36,7 @@ const App = () => {
 
     if(getType == "break"  && getFlag && getBreakInSeconds<1){
       setType('');
+      alert("break time is completed");
       clearTimeout(breakResult);
       setFlag(false);
     }
