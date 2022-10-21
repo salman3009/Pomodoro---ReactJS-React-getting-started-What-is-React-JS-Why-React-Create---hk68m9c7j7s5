@@ -18,7 +18,6 @@ function App() {
       if(worksecond === 0) {
         alert('work duration is over')
         setType('break');
-        setWorkSecond(workDuration * 60);
       }
     }
     if(flag && type === 'break'){
@@ -29,7 +28,6 @@ function App() {
       if(breaksecond === 0) {
         alert('break duration is over');
         setType('work');
-        setBreakSecond(breakDuration * 60);
       }
     }
   },[flag, type, worksecond, breaksecond, workDuration, breakDuration]);
