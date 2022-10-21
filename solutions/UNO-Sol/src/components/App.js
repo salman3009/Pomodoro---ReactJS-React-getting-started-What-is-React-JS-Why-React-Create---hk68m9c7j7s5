@@ -9,20 +9,37 @@ const App = () => {
   const [getSecondsRecordsBreak,setSecondsRecordsBreak] = useState(0);
   const [getFlag,setFlag] = useState(false);
   const [getType,settype] = useState("");
+  const [getWatch,stopWatch] = useState(false);
+
+  let result='';
+  let recordResult="";
 
   useEffect(()=>{
 
-    if(getType == "work"){
-      const result = setTimeout(()=>{
+    if(getFlag && getType == "work"){
+      result = setTimeout(()=>{
         console.log(getSecondsRecordsWork);
         setSecondsRecordsWork(getSecondsRecordsWork-1);
       },1000)
   
-      return ()=> clearTimeout(result);
+    
+    }
+    if(getFlag && getType == "work" && getSecondsRecordsWork<1){
+      clearTimeout(result);
+      settype("break");
+    }
+
+    if(getFlag && getType == "break"){
+      recordResult = setTimeout(()=>{
+        setSecondsRecordsBreak(getSecondsRecordsBreak-1);
+      },1000)
+    }
+
+    if(getFlag && getType == "break" && getSecondsRecordsBreak<1){
+      clearTimeout(recordResult);
     }
   
-
-  },[getType,getSecondsRecordsWork])
+  },[getType,getSecondsRecordsWork,getSecondsRecordsBreak,getWatch])
 
   const onDurationCheck=(event)=>{
     console.log(typeof event.target.value);
@@ -45,20 +62,41 @@ const App = () => {
   }
 
   const onSetHandler=()=>{
+    if(getWatch){
+      stopWatch(false);
+      setFlag(true);
+      return;
+    }
     alert("coming");
     setFlag(true);
     settype("work");
     console.log(getWorkDuration);
     console.log(getWorkDuration * 60);
     setSecondsRecordsWork(getWorkDuration*60);
+    setSecondsRecordsBreak(getBreakDuration*60);
   }
 
   const onStopHandler=()=>{
      setFlag(false);
+     if(result){
+      clearTimeout(result);
+     }
+     if(recordResult){
+      clearTimeout(result);
+     }
+     stopWatch(true);
   }
 
   const onResetHandler=()=>{
        setFlag(false);
+       stopWatch(false);
+       if(result){
+        clearTimeout(result);
+       }
+       if(recordResult){
+        clearTimeout(result);
+       }
+       settype('');
   }
 
   const getHandlers=(value)=>{
@@ -74,7 +112,8 @@ const App = () => {
     <div id="main">
 
       <div className="container">
-          {getType === "work"? getHandlers(getSecondsRecordsWork):""}
+          {getType === "work" && getHandlers(getSecondsRecordsWork)}
+          {getType === "break" && getHandlers(getSecondsRecordsBreak)}
           <br/>
                {getType}
       </div>
