@@ -1,124 +1,96 @@
-import React, { Component, useEffect, useState } from "react";
-import '../styles/App.css';
+import React, {useState, useEffect} from 'react';
 
-const App = () => {
+function App() {
+  const [workDuration, setWorkDuration] = useState(25);
+  const [breakDuration, setBreakDuration] = useState(5);
+  const [flag , setFlag] =  useState(false);
+  const [worksecond, setWorkSecond] = useState(1500);
+  const [breaksecond, setBreakSecond] = useState(300);
+  const [type, setType] = useState('work');
+  const [resetFlag, setResetFalg] = useState(true);
 
-  const [getWorkDuration,setWorkDuration] = useState(25);
-  const [getBreakDuration,setBreakDuration] = useState(5);
-  const [getWorkInSeconds,setWorkInSeconds] = useState(25*60);
-  const [getBreakInSeconds,setBreakInSeconds] = useState(25*60);
-  const [getType,setType] = useState('');
-  const [getFlag,setFlag] = useState(false);
-  const[getWatch,setWatch]=useState(false);
-
-  let workResult;
-  let breakResult;
-
-  useEffect(()=>{
- 
-    if(getType == "work"  && getFlag && getWorkInSeconds>=1){
-      workResult = setTimeout(()=>{
-          setWorkInSeconds(getWorkInSeconds-1);
-        },1000)
+  useEffect(() =>{
+    if(flag && type === 'work'){
+      if(worksecond > 0) {
+        const timer = setTimeout(() => setWorkSecond(worksecond - 1), 1000);
+        return () => clearTimeout(timer);
+      }
+      if(worksecond === 0) {
+        alert('work duration is over')
+        setType('break');
+        setWorkSecond(workDuration * 60);
+      }
     }
-
-    if(getType == "work"  && getFlag && getWorkInSeconds<1){
-      setType('break');
-      alert("work time is completed");
-      clearTimeout(workResult);
+    if(flag && type === 'break'){
+      if(breaksecond > 0) {
+        const timer = setTimeout(() => setBreakSecond(breaksecond - 1), 1000);
+        return () => clearTimeout(timer);
+      }
+      if(breaksecond === 0) {
+        alert('break duration is over');
+        setType('work');
+        setBreakSecond(breakDuration * 60);
+      }
     }
+  },[flag, type, worksecond, breaksecond, workDuration, breakDuration]);
 
-    if(getType == 'break' && getFlag && getBreakInSeconds>=1){
-      breakResult = setTimeout(()=>{
-        setBreakInSeconds(getBreakInSeconds-1);
-      },1000)
-    }
-
-    if(getType == "break"  && getFlag && getBreakInSeconds<1){
-      setType('');
-      alert("break time is completed");
-      clearTimeout(breakResult);
+  const reset = () =>{
+      setResetFalg(true);
       setFlag(false);
-    }
-    
-  },[getType,getFlag,getWorkInSeconds,getBreakInSeconds])
-
-  const onChangeDurationHandler=(event)=>{
-    if(event.target.name == 'work'){
-      setWorkDuration(parseInt(event.target.value)<0?'':parseInt(event.target.value));
-    }
-    else{
-      setBreakDuration(parseInt(event.target.value)<0?'':parseInt(event.target.value));
-    }
+      setType('work');
+      setWorkDuration(25);
+      setBreakDuration(5);
+      setBreakSecond(300);
+      setWorkSecond(1500);
   }
 
-  const onStartHandler=()=>{
-    if(getWatch){
-      setFlag(true);
-      return;
+  const convertToStandardFormat = (sec) =>{
+    let m = parseInt(sec / 60).toString();
+    let s = parseInt(sec % 60).toString();
+    if(m.length === 1) m = '0' + m;
+    if(s.length === 1) s = '0' + s;
+    return m + ":" + s;
+  }
+  
+  const validateData = (data) =>{
+    if(!isNaN(data) && parseInt(data) >= 0){
+      return parseInt(data);
     }
-    setWatch(true);
+    else
+      return '';
+  }
+  const setDuration = (e) =>{
+    e.preventDefault();
+    if(breakDuration + workDuration <= 0){
+      reset();
+      return ;
+    }
+    setResetFalg(false);
     setType('work');
-    setFlag(true);
-    setWorkInSeconds(getWorkDuration*60);
-    setBreakInSeconds(getBreakDuration*60);
+    setWorkSecond(workDuration * 60);
+    setBreakSecond(breakDuration * 60);
   }
-
-  const onStopHandler=()=>{
-    setFlag(false);
-    if(workResult){
-      clearTimeout(workResult);
-    }
-    if(breakResult){
-      clearTimeout(breakResult);
-    }
-  }
-
-  const onResetHandler=()=>{
-    setType('');
-    setWatch(false);
-    setFlag(false);
-    if(workResult){
-      clearTimeout(workResult);
-    }
-    if(breakResult){
-      clearTimeout(breakResult);
-    }
-    setWorkDuration(25);
-    setBreakDuration(5);
-  }
-
-  const setTimeFormat=(input)=>{
-    let m = parseInt(input/60).toString();
-    let s = parseInt(input%60).toString();
-    let minutesInput = m.length<=1?"0"+m:m;
-    let secondsInput = s.length<=1?"0"+s:s;
-    console.log(secondsInput);
-    return `${minutesInput}:${secondsInput}`;
-  }
-
   return (
-    <div id="main">
-      <div className="timer">
-      {getType == 'work' && setTimeFormat(getWorkInSeconds)}
-      {getType == 'break' && setTimeFormat(getBreakInSeconds)}
+    <div className="App" style={{textAlign: "center"}}>
+      <div className='clock'>
+      <h1 className='timer'>{(type === 'work') ? convertToStandardFormat(worksecond): convertToStandardFormat(breaksecond) }</h1>
+      <h3>{(type === 'work') ? 'Work' : 'Break'}-Time</h3>
       </div>
-      <div className="timer">
-        {getType == 'work'? 'Work-Time': 'Break-Time'}
+      <div className='control'>
+      <button data-testid='start-btn' key='start' onClick={() => {setFlag(true); setResetFalg(false)}} disabled={flag} >start</button>
+      <button data-testid='stop-btn' key='stop' onClick={() => {setFlag(false); setResetFalg(false)}} disabled={!flag}>Stop</button>
+      <button data-testid='reset-btn' key='reset' onClick={() => {reset()}} disabled={resetFlag}>Reset</button>
       </div>
-      <div className="timer">
-        <button disabled={getFlag}  data-testid='start-btn' onClick={onStartHandler}>Start</button>
-        <button disabled={!getFlag} data-testid='stop-btn' onClick={onStopHandler}>Stop</button>
-        <button disabled={!getFlag && getType==''}  data-testid='reset-btn' onClick={onResetHandler}>Reset</button>
+      <br></br>
+      <div className='parameters'>
+        <form onSubmit={setDuration}>
+        <input data-testid='work-duration' placeholder='work duration' required type='Number' value={workDuration} disabled={flag} onChange={(e) => setWorkDuration(validateData(e.target.value))}></input>
+        <input data-testid='break-duration' placeholder='break duration' required type='Number' value={breakDuration} disabled={flag} onChange={(e) => setBreakDuration(validateData(e.target.value))}></input>
+        <button data-testid='set-btn' type='submit' disabled={flag}>set</button>
+        </form>
       </div>
-      <div className="timer">
-        <input type="number" value={getWorkDuration} name="work" onChange={onChangeDurationHandler} data-testid='work-duration'/>
-        <input type="number" value={getBreakDuration} name="break" onChange={onChangeDurationHandler}  data-testid='break-duration'/>
-        <button disabled={getType!="" && getFlag}   data-testid='set-btn'>Set</button>
       </div>
-    </div>
-  )
+  );
 }
-
 
 export default App;
